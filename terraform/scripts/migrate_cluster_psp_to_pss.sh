@@ -52,6 +52,16 @@ function migrate() {
     done
 }
 
+function clean() {
+    msg "Cleaning up PSP resources"
+    kubectl delete clusterrole privileged-psp 2>/dev/null
+
+    local _ns
+    for _ns in $(list_ns); do
+        kubectl delete -n "${_ns}" rolebinding disable-psp 2>/dev/null
+    done
+}
+
 POLICY_VERSION=v1.24
 VERBOSE=false
 DEBUG=false
@@ -103,7 +113,7 @@ esac
 
 case ${cmd} in
     usage)
-        echo "Usage: $(basename ${0}) [--verbose] [--debug] [--policy-version=<value>] check | migrate" >&2
+        echo "Usage: $(basename ${0}) [--verbose] [--debug] [--policy-version=<value>] check | migrate | clean" >&2
         echo "Default PSS policy version: ${POLICY_VERSION}" >&2
         exit 1
         ;;
@@ -112,6 +122,9 @@ case ${cmd} in
         kubectl label --dry-run=server \
           --overwrite ns --all \
           pod-security.kubernetes.io/enforce=baseline
+        ;;
+    clean)
+        clean
         ;;
     migrate)
         migrate
