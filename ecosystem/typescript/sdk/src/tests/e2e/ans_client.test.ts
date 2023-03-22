@@ -83,3 +83,4 @@ test("returns null for an invalid subdomain", async () => {
   const address = await ans.getAddressByName("wallet.adapter.apt-");
   expect(address).toBeNull;
 });
+

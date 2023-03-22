@@ -1,5 +1,8 @@
-import { Provider } from "../providers/";
+import {AptosClient, Provider} from "../providers";
 import * as Gen from "../generated/index";
+import {AptosAccount} from "../account";
+import {AnyNumber} from "../bcs";
+import {TransactionBuilderRemoteABI} from "../transaction_builder";
 
 const ans_contracts: Record<string, string> = {
   testnet: "0x5f8fd2347449685cf41d4db97926ec3a096eaf381332be4f1318ad4d16a8497c",
@@ -22,6 +25,7 @@ const namePattern = new RegExp(
 
 export class AnsClient {
   contractAddress: string;
+
   provider: Provider;
 
   /**
@@ -48,7 +52,7 @@ export class AnsClient {
       this.contractAddress,
       `${this.contractAddress}::domains::ReverseLookupRegistryV1`,
     );
-    const handle = (ansResource as any).data.registry.handle;
+    const {handle} = (ansResource as any).data.registry;
     const domainsTableItemRequest = {
       key_type: "address",
       value_type: `${this.contractAddress}::domains::NameRecordKeyV1`,
@@ -76,6 +80,37 @@ export class AnsClient {
   }
 
   /**
+   * Mint a new Aptos name
+   *
+   * @param account AptosAccount where collection will be created
+   * @param domainName  Aptos domain name to mint
+   * @param years year duration of the domain name
+   * @returns The hash of the transaction submitted to the API
+   */
+  async mintAptosName(
+      account: AptosAccount,
+      domainName: string,
+      years: AnyNumber = 1,
+  ): Promise<string> {
+
+    // first check if the name is available
+    const address = await this.getAddressByName(domainName);
+    if (address !== null) {
+        throw new Error(`Name ${domainName} is not available`);
+    }
+    const builder = new TransactionBuilderRemoteABI(this.provider.aptosClient, { sender: account.address()});
+    const rawTxn = await builder.build(
+        `${this.contractAddress}::domains::register_domain`,
+        [],
+        [domainName, years],
+    );
+
+    const bcsTxn = AptosClient.generateBCSTransaction(account, rawTxn);
+    const pendingTransaction = await this.provider.aptosClient.submitSignedBCSTransaction(bcsTxn);
+    return pendingTransaction.hash;
+  }
+
+  /**
    * Returns the account address for the given domain name
    * @param domain domain name
    * @example
@@ -91,7 +126,7 @@ export class AnsClient {
       `${this.contractAddress}::domains::NameRegistryV1`,
     );
 
-    const handle = (ansResource as any).data.registry.handle;
+    const {handle} = (ansResource as any).data.registry;
     const domainsTableItemRequest = {
       key_type: `${this.contractAddress}::domains::NameRecordKeyV1`,
       value_type: `${this.contractAddress}::domains::NameRecordV1`,
@@ -128,7 +163,7 @@ export class AnsClient {
       this.contractAddress,
       `${this.contractAddress}::domains::NameRegistryV1`,
     );
-    const handle = (ansResource as any).data.registry.handle;
+    const {handle} = (ansResource as any).data.registry;
     const domainsTableItemRequest = {
       key_type: `${this.contractAddress}::domains::NameRecordKeyV1`,
       value_type: `${this.contractAddress}::domains::NameRecordV1`,
