@@ -21,6 +21,7 @@ use proptest::{
     strategy::{Strategy, ValueTree},
     test_runner::TestRunner,
 };
+use std::time::Instant;
 
 /// Benchmarking support for transactions.
 #[derive(Clone, Debug)]
@@ -220,9 +221,14 @@ impl TransactionBenchState {
     fn execute(self) {
         // The output is ignored here since we're just testing transaction performance, not trying
         // to assert correctness.
+        let timer = Instant::now();
+        let count = self.transactions.len();
         BlockAptosVM::execute_block(self.transactions, self.executor.get_state_view(), 1)
             .expect("VM should not fail to start");
+        let elapsed_time = timer.elapsed();
+        println!("TPS = {}", count * 1000 / elapsed_time.as_millis() as usize);
     }
+
 
     /// Executes this state in a single block via parallel execution.
     fn execute_parallel(self) {
