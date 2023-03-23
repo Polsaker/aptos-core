@@ -48,5 +48,8 @@ BUILD_TARGET="${1:-forge-images}"
 if [ "$CI" == "true" ]; then
   TARGET_REGISTRY=remote docker buildx bake --progress=plain --file docker/experimental/docker-bake-rust-all.hcl --push $BUILD_TARGET
 else
-  TARGET_REGISTRY=local docker buildx bake --file docker/experimental/docker-bake-rust-all.hcl $BUILD_TARGET --load
+  TARGET_REGISTRY=local docker buildx bake --file docker/experimental/docker-bake-rust-all.hcl $BUILD_TARGET --progress=plain 
 fi
+
+echo "Build complete. Docker buildx cache usage:"
+docker buildx du --verbose --filter type=exec.cachemount

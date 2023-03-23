@@ -113,6 +113,7 @@ target "tools-builder" {
 target "_common" {
   contexts = {
     debian-base = "target:debian-base"
+    node-builder = "target:aptos-node-builder"
     builder = "target:tools-builder"
   }
   labels = {
