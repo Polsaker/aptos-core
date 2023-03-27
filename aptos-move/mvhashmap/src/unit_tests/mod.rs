@@ -67,13 +67,13 @@ fn sub_for(txn_idx: TxnIndex, base: u128) -> DeltaOp {
     delta_sub(base + (txn_idx as u128), u128::MAX)
 }
 
-#[derive(Clone, Eq, Hash, PartialEq)]
-pub(crate) struct KeyType<K: Hash + Clone + Eq>(
+#[derive(Clone, Eq, Hash, PartialEq, Debug)]
+pub(crate) struct KeyType<K: Hash + Clone + Debug + Eq>(
     /// Wrapping the types used for testing to add ModulePath trait implementation.
     pub K,
 );
 
-impl<K: Hash + Clone + Eq> ModulePath for KeyType<K> {
+impl<K: Hash + Clone + Eq + Debug> ModulePath for KeyType<K> {
     fn module_path(&self) -> Option<AccessPath> {
         None
     }
