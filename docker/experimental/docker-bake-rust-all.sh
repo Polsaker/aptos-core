@@ -23,6 +23,7 @@ export PROFILE=${PROFILE:-release}
 export FEATURES=${FEATURES:-""}
 export NORMALIZED_FEATURES_LIST=$(printf "$FEATURES" | sed -e 's/[^a-zA-Z0-9]/_/g')
 export CUSTOM_IMAGE_TAG_PREFIX=${CUSTOM_IMAGE_TAG_PREFIX:-""}
+export CARGO_TARGET_DIR="target/${FEATURES:-"default"}"
 
 if [ "$PROFILE" = "release" ]; then
   # Do not prefix image tags if we're building the default profile "release"
