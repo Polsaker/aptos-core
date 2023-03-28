@@ -355,7 +355,7 @@ pub async fn fund_account(
         .body("{}")
         .send()
         .await
-        .map_err(|err| CliError::ApiError(err.to_string()))?;
+        .map_err(|err| CliError::ApiError(format!("Failed to query faucet: {:#}", err)))?;
     if response.status() == 200 {
         let hashes: Vec<HashValue> = response
             .json()
